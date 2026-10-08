@@ -118,9 +118,10 @@ NavigationItemsState currentNavigationItemsState(Ref ref) {
     items = items
         .where(
           (element) => [
-            PageLabel.dashboard,
-            PageLabel.proxies,
-            PageLabel.profiles,
+          PageLabel.dashboard,
+          PageLabel.proxies,
+          PageLabel.rules,
+          PageLabel.profiles,
             PageLabel.tools,
           ].contains(element.label),
         )

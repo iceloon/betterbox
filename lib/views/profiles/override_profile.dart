@@ -13,8 +13,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OverrideProfileView extends StatefulWidget {
   final String profileId;
+  final String? title;
+  final bool manageOriginRules;
 
-  const OverrideProfileView({super.key, required this.profileId});
+  const OverrideProfileView({
+    super.key,
+    required this.profileId,
+    this.title,
+    this.manageOriginRules = false,
+  });
 
   @override
   State<OverrideProfileView> createState() => _OverrideProfileViewState();
@@ -29,9 +36,21 @@ class _OverrideProfileViewState extends State<OverrideProfileView> {
       Future.delayed(Duration(milliseconds: 300), () async {
         final rawConfig = await globalState.getProfileConfig(widget.profileId);
         final snippet = ClashConfigSnippet.fromJson(rawConfig);
-        final overrideData = ref.read(
+        var overrideData = ref.read(
           getProfileOverrideDataProvider(widget.profileId),
         );
+        if (widget.manageOriginRules && overrideData != null) {
+          final existingRule = overrideData.rule;
+          overrideData = overrideData.copyWith(
+            enable: true,
+            rule: OverrideRule(
+              type: OverrideRuleType.override,
+              overrideRules: existingRule.type == OverrideRuleType.override
+                  ? existingRule.overrideRules
+                  : snippet.rule,
+            ),
+          );
+        }
         ref
             .read(profileOverrideStateProvider.notifier)
             .updateState(
@@ -205,7 +224,7 @@ class _OverrideProfileViewState extends State<OverrideProfileView> {
                 return true;
               },
               child: CommonScaffold(
-                title: appLocalizations.override,
+                title: widget.title ?? appLocalizations.override,
                 body: _buildContent(),
                 actions: [
                   if (hasUnsavedChanges)
