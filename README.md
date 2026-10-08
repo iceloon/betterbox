@@ -110,6 +110,19 @@ Bettbox意为: Better Experience, Out of the box - 更好的体验，亦开箱�
 
 ##  开发构建及UI适配
 
+### 与 Bettbox 上游同步
+
+Betterbox 保留 Bettbox 的完整上游历史，只在此基础上增加“分流”功能。仓库内置
+[`Sync Bettbox upstream`](.github/workflows/sync-upstream.yml) GitHub Action：
+
+* 每天自动检查 `appshubcc/Bettbox` 的默认分支；
+* 将上游更新合并到自动同步分支，并创建或更新 Pull Request；
+* 如果上游修改了与“分流”功能相同的文件，Action 不会覆盖本地代码，而是创建 Issue 列出冲突，等待人工处理；
+* 也可以在 GitHub Actions 页面手动运行，并通过 `upstream_branch` 指定上游分支。
+
+合并同步 PR 前，建议重点检查 `lib/common/navigation.dart`、`lib/enum/enum.dart`、
+`lib/providers/state.dart` 和 `lib/views/profiles/override_profile.dart`。
+
 以 Windows 平台构建为例：
 
 * 你需要一台 Windows 设备（系统 ≥ Windows 10）
