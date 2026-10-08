@@ -4,11 +4,24 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Build all platforms or one selected platform'
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - windows
+          - macos
+          - linux
 
 env:
-  IS_STABLE: ${{ !contains(github.ref, '-') }}
-  IS_PRERELEASE: ${{ contains(github.ref_name, 'pre') }}
-  SHOULD_RELEASE: ${{ !contains(github.ref, '-') || contains(github.ref_name, 'pre') }}
+  IS_STABLE: ${{ github.event_name == 'push' && !contains(github.ref, '-') }}
+  IS_PRERELEASE: ${{ github.event_name == 'push' && contains(github.ref_name, 'pre') }}
+  SHOULD_RELEASE: ${{ github.event_name == 'push' && (!contains(github.ref, '-') || contains(github.ref_name, 'pre')) }}
   GRADLE_OPTS: -Dorg.gradle.vfs.watch=false
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   SENTRY_BACKEND: none
@@ -16,57 +29,51 @@ env:
   IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN || vars.IPINFO_TOKEN }}
   
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Select build matrix
+        id: matrix
+        shell: bash
+        env:
+          REQUESTED_PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+
+          builds = [
+              {"platform": "android", "os": "ubuntu-24.04", "arch": "arm64"},
+              {"platform": "android", "os": "ubuntu-24.04", "arch": "amd64"},
+              {"platform": "android", "os": "ubuntu-24.04", "arch": "arm"},
+              {"platform": "android", "os": "ubuntu-24.04", "arch": "universal"},
+              {"platform": "windows", "os": "windows-2022", "arch": "amd64"},
+              {"platform": "windows", "os": "windows-11-arm", "arch": "arm64"},
+              {"platform": "windows", "os": "windows-2022", "arch": "amd64", "compatible": True},
+              {"platform": "macos", "os": "macos-15", "arch": "arm64"},
+              {"platform": "macos", "os": "macos-15", "arch": "amd64"},
+              {"platform": "macos", "os": "macos-15", "arch": "amd64", "compatible": True},
+              {"platform": "linux", "os": "ubuntu-22.04", "arch": "amd64"},
+              {"platform": "linux", "os": "ubuntu-24.04-arm", "arch": "arm64"},
+              {"platform": "linux", "os": "ubuntu-22.04", "arch": "amd64", "compatible": True},
+          ]
+          requested = os.environ["REQUESTED_PLATFORM"]
+          selected = builds if requested == "all" else [
+              item for item in builds if item["platform"] == requested
+          ]
+          print("matrix=" + json.dumps({"include": selected}, separators=(",", ":")))
+
   build:
+    needs: prepare
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
       actions: write
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: android
-            os: ubuntu-24.04
-            arch: arm64
-          - platform: android
-            os: ubuntu-24.04
-            arch: amd64
-          - platform: android
-            os: ubuntu-24.04
-            arch: arm
-          - platform: android
-            os: ubuntu-24.04
-            arch: universal
-          - platform: windows
-            os: windows-2022
-            arch: amd64
-          - platform: windows
-            os: windows-11-arm
-            arch: arm64
-          - platform: windows
-            os: windows-2022
-            arch: amd64
-            compatible: true
-          - platform: macos
-            os: macos-15
-            arch: arm64
-          - platform: macos
-            os: macos-15
-            arch: amd64
-          - platform: macos
-            os: macos-15
-            arch: amd64
-            compatible: true
-          - platform: linux
-            os: ubuntu-22.04
-            arch: amd64
-          - platform: linux
-            os: ubuntu-24.04-arm
-            arch: arm64
-          - platform: linux
-            os: ubuntu-22.04
-            arch: amd64
-            compatible: true
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -103,11 +110,22 @@ jobs:
 
       - name: Setup Keystore (Android)
         if: matrix.platform == 'android'
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS_VALUE: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD_VALUE: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD_VALUE: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
+          if [[ -z "$KEYSTORE_B64" || -z "$KEY_ALIAS_VALUE" || -z "$STORE_PASSWORD_VALUE" || -z "$KEY_PASSWORD_VALUE" ]]; then
+            echo "Android signing secrets are not configured; Gradle will use its debug signing key."
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/keystore.jks
+          {
+            printf 'keyAlias=%s\n' "$KEY_ALIAS_VALUE"
+            printf 'storePassword=%s\n' "$STORE_PASSWORD_VALUE"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD_VALUE"
+          } >> android/local.properties
           
       - name: Setup Java (Android)
         if: matrix.platform == 'android'
@@ -356,13 +374,16 @@ jobs:
           dart windows/packaging/exe/package_windows.dart --arch ${{ matrix.arch }} ${{ matrix.compatible == true && '--compatible' || '' }} --env ${{ env.IS_STABLE == 'true' && 'stable' || 'pre' }}
 
       - name: Find Installer Path
-        if: matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN != ''
+        if: matrix.platform == 'windows'
         shell: pwsh
         run: |
           $desc = if ('${{ matrix.compatible }}' -eq 'true') { "${{ matrix.arch }}-compatible" } else { "${{ matrix.arch }}" }
-          $installer = (Resolve-Path "dist/Bettbox-*-windows-$desc-setup.exe").Path
-          echo "INSTALLER_PATH=$installer" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "INSTALLER_FILENAME=$(Split-Path -Leaf $installer)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $installer = Get-ChildItem "dist/Bettbox-*-windows-$desc-setup.exe" | Select-Object -First 1
+          if (-not $installer) {
+            Write-Error "Windows installer was not generated."
+          }
+          echo "INSTALLER_PATH=$($installer.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "INSTALLER_FILENAME=$($installer.Name)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload Unsigned Installer
         if: matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN != ''
@@ -387,6 +408,15 @@ jobs:
           github-artifact-id: '${{ steps.upload-installer.outputs.artifact-id }}'
           wait-for-completion: true
           output-artifact-directory: 'dist'
+
+      - name: Upload Windows Installer (unsigned fallback)
+        if: matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN == ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-installer
+          path: ${{ env.INSTALLER_PATH }}
+          archive: false
+          overwrite: true
       
       - name: Clean up intermediate unsigned artifacts
         if: always() && matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN != ''
@@ -526,7 +556,7 @@ jobs:
           fi
 
       - name: Release
-        if: ${{ env.SHOULD_RELEASE == 'true' }}
+        if: ${{ env.SHOULD_RELEASE == 'true' && github.event_name == 'push' }}
         uses: softprops/action-gh-release@v3.0.0
         with:
           files: ./dist/*

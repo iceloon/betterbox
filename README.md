@@ -1,186 +1,73 @@
-<h4 align="right">
-  <strong>简体中文</strong> | <a href="readme/README_en.md">English</a> | <a href="readme/README_ru.md">Русский</a> | <a href="readme/README_fa.md">فارسی</a> | <a href="readme/README_ja.md">日本語</a> | <a href="readme/README_ko.md">한국어</a>
-</h4>
+# Betterbox
 
-<h1 align="center">⚡ Bettbox</h1>
-<p align="center">
-  <strong>Another Better Mihomo Client，Forked form FlClash</strong>
-</p>
+Betterbox 是 [Bettbox](https://github.com/appshubcc/Bettbox) 的分支版本，保留上游功能，只增加下面这些能力。
 
-**Bettbox 是一款多平台的网络分流和 DNS 调试工具，基于强大的 Mihomo 内核深度打造，我们注重隐私、安全以及更多的功能使用细节，致力于提供更好的客户端体验（项目当前已率先通过 Signpath 开源基金会的人工审核安全溯源，Windows端已装载 OV 数字签名证书）**
+## 相比 Bettbox 增加的功能
 
-秉承“Better Experience更优体验”的原则，Bettbox 在继承原版优秀界面UI的基础上，深度优化了诸多细节与多个平台的实用功能、逻辑。核心特性及实现目标: 前台流畅、后台省电，致力于成为体验更好、以少量资源消耗即可长期稳定运行的 Mihomo 客户端
+### 分流规则管理
 
-Bettbox意为: Better Experience, Out of the box - 更好的体验，亦开箱可用
+新增独立的“分流”页面，提供类似 Surge“规则”页面的管理体验：
 
+- 按顺序查看当前配置中的分流规则；
+- 展示规则类型、匹配内容和策略目标；
+- 搜索规则；
+- 添加、编辑和删除规则；
+- 拖拽调整规则优先级；
+- 从当前配置导入原始规则；
+- 保存规则覆盖并应用到当前配置；
+- 复用 Bettbox 原有规则模型和配置覆盖机制，不创建第二套规则存储。
 
-[![Latest Release](https://img.shields.io/github/v/release/appshubcc/Bettbox?style=for-the-badge&logo=github&color=238636&label=Release)](https://github.com/appshubcc/Bettbox/releases/latest) [![Core](https://img.shields.io/github/v/release/MetaCubeX/mihomo?style=for-the-badge&logo=go&logoColor=white&color=8A2BE2&label=Mihomo)](https://github.com/MetaCubeX/mihomo/releases/latest)
+### 自动跟随 Bettbox 更新
 
-<p align="center">
-  <img src="snapshots/home.png" alt="Bettbox" />
-</p>
+`.github/workflows/sync-upstream.yml` 会定期检查 `appshubcc/Bettbox`：
 
----
-### ✈️ Telegram 社区交流
+- 自动合并上游更新到同步分支；
+- 自动创建或更新 Pull Request；
+- 如果上游改动与“分流”功能冲突，则停止合并并创建 Issue，不覆盖本地代码；
+- 支持在 GitHub Actions 页面手动指定上游分支。
 
-</div>
+## GitHub Actions 构建安装包
 
-<div align="left">
+可以直接在 GitHub Actions 中构建安装包。
 
-[![Telegram Group](https://img.shields.io/badge/Bettbox-Chat-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/appshub_chat) [![Telegram Channel](https://img.shields.io/badge/Bettbox-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/appshub_channel)
+### 自动构建
 
----
-## 🚀 核心特性
+给仓库推送版本标签时触发构建：
 
-* **开箱即用**：稳定的权限处理与舒适的 TUN/VPN 体验，大量预置优化细节，开箱即达可用状态。
-* **精雕细琢**：打磨每处 UI 与功能交互细节，前台高帧率动画流畅，移动端低能耗，桌面端低占用。
-* **安全守护**：内核紧跟 Mihomo 主线，遵循各平台最小权限，并获得 SignPath 官方 OV 数字签名。
-* **稳定容错**：优化多平台极端场景下的边界问题并内置双重配置检测验证，媲美企业级的使用稳定性。
-* **性能优先**：桌面端原生 ARM64 架构支持，提供硬件分级以及 Flutter 深度优化，榨干硬件性能。
-* **增强工具**：首个多平台无感智能启停、Android端休眠支持、一键禁用QUIC、托盘菜单增强等等。
-* **可视化设置**：提供更加丰富参数的可视化调节界面，支持改动即时生效，无需繁琐修改配置。
-* **首页小组件**：内置多款设计精良的 Widget 小组件，在首页直观掌控实时网速与全局运行状态。
-* **个性化定制**：支持丰富的色彩主题、自定义图标/标题等，甚至还包含 30 种精美测速动画。
-* **自定义适配**：首个支持JS覆写脚本可用的分流 UI 适配以及自定义可用的可视化便捷开关。
-* **专业编辑**：多平台内置高性能重构版code-forge编辑器，甚至可媲美专业级别的编辑器体验。
-* **设备兼容**：持续维护面向旧版系统及老旧硬件的 Compatible 兼容版本，延长设备使用周期。
-* **零隐私风险**：开源、无广告，全透明的 CI/CD 流程接受全方位审计，杜绝任何后台隐私收集。
-* **社区导向**：我们会认真评估社区反馈，优先对待高质量的 Issue，你的声音不会无故被淹没。
-
----
-</div>
-
-###   🛩️ 推荐服务
-### IEPL 专线  〢  [百变小樱](https://www.bbxy01.com/v2/register?code=c09R)
-
-### 专享68折优惠码：bettbox68
-
-**简评** : ❚ ❚  老牌小众专线，海外团队运营多年，大厂BGP入口+广港&沪日线路，折后约17元/月或127元/年，解锁流媒体与AI，延迟与口碑优秀，适合对稳定性要求较高的用户，小技巧：别忘了使用68折优惠码，以及后台个人中心签到每日可再额外领取5-10GB流量
-
---------------------------------
-### 性价比直连  〢  [良心云](https://xn--9kqz23b19z.com/#/register?code=VTnrQYAj)  〢  [吹雪云](https://xn--9kqs1lo79d.com/#/register?code=skKMTab7)  〢  [一分](https://xn--4gqx1hgtfdmt.com/#/register?code=AuCiXprV)
-
-**简评** : ❚  大流量或资源机为主，运营相对稳定，起步价格较低，888G / 1000G不限时套餐通常更有性价比，量大管饱，价格低廉，适合要求不高的用户或备用流量及大流量下载选择
-
----
-## 🛠️ 安装与下载
-
-请前往 **[[Releases]](https://github.com/appshubcc/Bettbox/releases)** 页面下载最新适合您平台和系统的安装包
-
-
-* **全平台桌面端**: 
-**Windows 8.1+:** (x64/arm64)
-**Linux Kernel 5.4+:** (x64/arm64)
-**macOS 10.15+:** (Intel/Apple Silicon)
-* **Android 8.0+:** Android (ARMv8/ ARMv7/ x86_64/ Universal) 
-* **Android TV:** 已完整适配，低内存设备可选 ARMv7 32位
-* **鸿蒙 NEXT:** 可配合 [[卓易通]](https://harmonyos.cool/android-app) 稳定使用
-
-**其他安装方式:**<br>
-**ArchLinux:** <code>yay -S bettbox-bin 或 paru -S bettbox-bin</code> (由[ lyj404 ](https://github.com/lyj404/bettbox-aur)维护)<br>
-**AMD64=v1:** <code>yay -S bettbox-compatible-bin 或 paru -S bettbox-compatible-bin</code> (由[ VillagerTom ](https://github.com/VillagerTom)维护)
-
----
-##  常见问题
-
-1.  **安装启动及安全问题**：
-   - 安卓端设备，请检查**是否授予了充足的后台权限，并满足最低系统要求**:Android 8.0+
-   - 桌面端旧设备，请检查系统平台架构**是否需要下载特定CPU等级的Compatible版本**
-   - **安全相关：Bettbox 项目开源透明零隐私上传，当前代码已通过 Signpath 安全审计**
-
-2.  **桌面端常见问题**：
-   - Windows管理员权限：Bettbox安装版已提前处理，**无需手动再次授权**
-   - 无法开启TUN虚拟网卡：macOS和Linux**请确保输入正确密码给与权限授权**
-   - 其他报错：请提供Debug信息，并**确保没有冲突的代理软件或服务正在运行**
-   - 其他问题如持续存在，请提交ISSUE反馈
-
-3.  **macOS安装注意事项**：
-   - 根据所属平台(Intel/Apple Silicon)下载完成后，双击打开 Bettbox-macos-xx.dmg 文件
-   - 将 Bettbox 图标拖拽至 Applications（应用程序）文件夹中即可完成安装
-   - **安装或更新时避开系统安全拦截**（[由于当前暂未购买 Apple 开发者证书](https://support.apple.com/en-us/102445)）：
-     - **推荐**：进入“应用程序”文件夹，**右键 Bettbox 图标**，选择 **“打开”**，在确认弹窗中再次点击 **“打开”** 即可
-     - **备选**：如果直接双击被阻止，请前往 Mac 系统“设置” -> “隐私与安全性”，找到 Bettbox 并点击 **“仍要打开”**
-   - 首次开启 TUN 模式时，系统会弹出密码授权窗口，**请输入当前登录用户的密码以允许 Bettbox 配置网络**
-
-4.  **无法导入订阅链接**：
-   - **请务必先尝试重置链接**，确保链接正常后导入
-   - 其他问题如持续存在，请先联系服务商解决，如DEBUG确定为APP原因，则提交ISSUE反馈
-
----
-
-##  开发构建及UI适配
-
-### 与 Bettbox 上游同步
-
-Betterbox 保留 Bettbox 的完整上游历史，只在此基础上增加“分流”功能。仓库内置
-[`Sync Bettbox upstream`](.github/workflows/sync-upstream.yml) GitHub Action：
-
-* 每天自动检查 `appshubcc/Bettbox` 的默认分支；
-* 将上游更新合并到自动同步分支，并创建或更新 Pull Request；
-* 如果上游修改了与“分流”功能相同的文件，Action 不会覆盖本地代码，而是创建 Issue 列出冲突，等待人工处理；
-* 也可以在 GitHub Actions 页面手动运行，并通过 `upstream_branch` 指定上游分支。
-
-合并同步 PR 前，建议重点检查 `lib/common/navigation.dart`、`lib/enum/enum.dart`、
-`lib/providers/state.dart` 和 `lib/views/profiles/override_profile.dart`。
-
-以 Windows 平台构建为例：
-
-* 你需要一台 Windows 设备（系统 ≥ Windows 10）
-* 其他必要环境：Git，Visual Studio，Flutter 3.44.x，Golang，Inno Setup，Rust
 ```bash
-* flutter pub get (获取相关依赖)
-* dart .\setup.dart windows --arch amd64 --out core (仅构建Core核心)
-* dart .\setup.dart windows --arch amd64 --out app --compatible (可选兼容版本)
-* 构建完成后，最终产物位于 `dist/` 目录
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-自定义脚本 UI 适配：
+构建矩阵包含：
 
-* Bettbox自v1.18.8版本起支持外置覆写脚本适配UI，例如以AIsouler的**[脚本/配置分享](https://github.com/AIsouler/MyClash)**为例，仅需要在脚本首行添加以下声明，即可直接使用Bettbox内置的可视化开关。
-* <code>const Compatible_With_Bettbox = { ruleOptionsEnable: true };</code>
-* 若脚本的开关中同时包含策略组开关与其他功能开关，可通过 `policyGroupOptions` 声明哪些开关属于策略组；未声明的开关会收进页面末尾的「⚙️ 其他设置」二级页面，策略组开关保持原有列表展示：
+- Android：ARMv7、ARM64、x86_64、Universal APK；
+- Windows：x64、ARM64，以及 x64 Compatible 安装包；
+- macOS：Apple Silicon、Intel，以及 Intel Compatible 安装包；
+- Linux：x64、ARM64 DEB，x64 AppImage 和 RPM。
 
-```js
-const Compatible_With_Bettbox = {
-  ruleOptionsEnable: true,
-  // 声明属于策略组的开关名称，需与 ruleOptionsEnable 的键完全一致
-  policyGroupOptions: ['🚀 节点选择', '🛑 广告拦截'],
-};
-```
+版本标签构建完成后会自动创建 GitHub Release，并上传安装包。
 
-* 未声明 `policyGroupOptions`、或声明的名称与开关不匹配时，展示效果与旧版本完全一致（所有开关平铺展示）。
+### 手动构建
 
----
+进入仓库的 **Actions → build → Run workflow**，可以选择构建全部平台或单个平台。
+手动构建不会创建 Release，安装包会保存在对应的 Actions Artifact 中，可在运行记录页面下载。
 
-### ☕ 赞助支持
+### 签名配置
 
-**如果您觉得这个项目对您有所帮助，可通过以下方式赞助开发或使用[推荐链接](https://github.com/appshubcc/Bettbox#%EF%B8%8F-%E6%8E%A8%E8%8D%90%E6%9C%8D%E5%8A%A1)：**
+构建流程沿用 Bettbox 的打包方式：
 
-* TRON (TRC-20)：   <code>TCkTtZfF2WrciZLaJj3e1aqrh3zdTnCkDa</code>
-* Bitcoin： <code>bc1qu950cl6035qvllmzk6cfw3l30j2lg3cq9n6g6h</code>
----
+- Android 签名：配置 `KEYSTORE`、`KEY_ALIAS`、`STORE_PASSWORD`、`KEY_PASSWORD` Secrets；
+- Windows 签名：配置 `SIGNPATH_API_TOKEN` 及 Bettbox SignPath 项目对应的配置；
+- 未配置签名时，仍可构建用于测试的安装包，但不会获得对应平台的正式签名。
 
-##  致谢
+详细的上游功能、系统要求和构建依赖请参考 [Bettbox README](https://github.com/appshubcc/Bettbox#readme)。
 
-<table>
-  <tr>
-    <td>
-      <img alt="SignPath" src="https://signpath.org/assets/favicon-50x50.png" />
-    </td>
-    <td>
-    Free code signing on Windows provided by <a href="https://signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org/">SignPath Foundation</a>
-    </td>
-  </tr>
-</table>
+## 相关 Action
 
-**[FlClash GUI](https://github.com/chen08209/FlClash)** 〢 **[Mihomo Core](https://github.com/MetaCubeX/mihomo)**
+- [同步 Bettbox 上游](.github/workflows/sync-upstream.yml)
+- [构建安装包](.github/workflows/build.yaml)
 
-其他为本项目添砖加瓦的 [Contributors](https://github.com/appshubcc/Bettbox/graphs/contributors) 以及相关开源项目使用或参考
+## 许可证
 
-[Zashboard](https://github.com/Zephyruso/zashboard), [CMFA](https://github.com/MetaCubeX/ClashMetaForAndroid), [Sparkle](https://github.com/xishang0128/sparkle), [SFA](https://github.com/SagerNet/sing-box-for-android), [HUSI](https://github.com/xchacha20-poly1305/husi), [V2rayN](https://github.com/2dust/v2rayN), [Bett-rules](https://github.com/appshubcc/bett-rules)
-
----
-
-## 📄 开源协议
-
-GPL-3.0 license 开源协议
+本项目沿用 Bettbox 的 GPL-3.0 许可证。
