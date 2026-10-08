@@ -97,15 +97,8 @@ jobs:
           title='[upstream-sync] Resolve Bettbox merge conflicts'
           issue_number="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
           if [[ -z "$issue_number" ]]; then
-            issue_body=$(cat <<EOF
-The scheduled Betterbox sync could not merge appshubcc/Bettbox:$UPSTREAM_BRANCH into $DEFAULT_BRANCH.
-
-Conflicting files:
-$conflict_files
-
-Resolve the conflicts locally and push the merge to $DEFAULT_BRANCH.
-EOF
-            )
+            issue_body=$(printf 'The scheduled Betterbox sync could not merge appshubcc/Bettbox:%s into %s.\n\nConflicting files:\n%s\n\nResolve the conflicts locally and push the merge to %s.\n' \
+              "$UPSTREAM_BRANCH" "$DEFAULT_BRANCH" "$conflict_files" "$DEFAULT_BRANCH")
             gh issue create --title "$title" --body "$issue_body"
           fi
           exit 1
@@ -133,12 +126,8 @@ EOF
             --jq '.[0].url // empty')"
 
           if [[ -z "$pr_url" ]]; then
-            pr_body=$(cat <<EOF
-This PR merges the latest appshubcc/Bettbox:$UPSTREAM_BRANCH into Betterbox.
-
-The Betterbox-only rule management feature remains in this repository and should be reviewed for conflicts before merging.
-EOF
-            )
+            pr_body=$(printf 'This PR merges the latest appshubcc/Bettbox:%s into Betterbox.\n\nThe Betterbox-only rule management feature remains in this repository and should be reviewed for conflicts before merging.\n' \
+              "$UPSTREAM_BRANCH")
             gh pr create \
               --base "$DEFAULT_BRANCH" \
               --head "$SYNC_BRANCH" \
