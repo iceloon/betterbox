@@ -563,7 +563,7 @@ jobs:
           EOF
 
       - name: Release
-        if: ${{ env.SHOULD_RELEASE == 'true' }}
+        if: ${{ env.SHOULD_RELEASE == 'true' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') }}
         uses: softprops/action-gh-release@v3.0.0
         with:
           files: ./dist/*
