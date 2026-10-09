@@ -569,5 +569,13 @@ jobs:
           files: ./dist/*
           body_path: './release.md'
           tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
           name: Betterbox ${{ env.RELEASE_TAG }}
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}
+          fail_on_unmatched_files: true
+
+      - name: Explain artifact-only build
+        if: ${{ env.SHOULD_RELEASE != 'true' }}
+        run: |
+          echo '### Artifact-only build' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Release publishing is disabled for this run. Download packages from Actions Artifacts, or run with create_release=true and a release_tag.' >> "$GITHUB_STEP_SUMMARY"
