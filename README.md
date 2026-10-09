@@ -30,14 +30,16 @@ Betterbox 是 [Bettbox](https://github.com/appshubcc/Bettbox) 的分支版本，
 
 可以直接在 GitHub Actions 中构建安装包。
 
-### 自动构建
+### 上游更新后自动构建并发布
 
-给仓库推送版本标签时触发构建：
+`Sync Bettbox upstream and release Betterbox` 每天检查 Bettbox 上游。发现新提交时会：
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+1. 将上游更新合并到 Betterbox 默认分支；
+2. 冲突时停止并创建 Issue，不构建不完整代码；
+3. 合并成功后自动触发 `build` workflow；
+4. 构建完成后创建 Betterbox GitHub Release 并上传安装包。
+
+Release 标签会根据 Bettbox 版本、日期和上游提交生成。
 
 构建矩阵包含：
 
@@ -46,12 +48,10 @@ git push origin v1.0.0
 - macOS：Apple Silicon、Intel，以及 Intel Compatible 安装包；
 - Linux：x64、ARM64 DEB，x64 AppImage 和 RPM。
 
-版本标签构建完成后会自动创建 GitHub Release，并上传安装包。
-
 ### 手动构建
 
 进入仓库的 **Actions → build → Run workflow**，可以选择构建全部平台或单个平台。
-手动构建不会创建 Release，安装包会保存在对应的 Actions Artifact 中，可在运行记录页面下载。
+默认只生成 Actions Artifacts；如果设置 `release_tag` 并启用 `create_release`，则会在构建后创建 Release。
 
 ### 签名配置
 
