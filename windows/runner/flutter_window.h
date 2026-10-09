@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "win32_window.h"
+#include "current_website.h"
 
 class FlutterWindow : public Win32Window {
  public:
@@ -37,6 +38,7 @@ class FlutterWindow : public Win32Window {
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       clipboard_channel_;
   HWND view_window_ = nullptr;
+  std::unique_ptr<CurrentWebsiteReader> current_website_reader_;
   WNDPROC original_view_proc_ = nullptr;
 };
 

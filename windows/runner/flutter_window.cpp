@@ -254,6 +254,8 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  current_website_reader_ = std::make_unique<CurrentWebsiteReader>(
+      flutter_controller_->engine()->messenger(), GetHandle());
 
   clipboard_channel_ =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
@@ -273,6 +275,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  current_website_reader_ = nullptr;
   RestoreViewWindow();
   clipboard_channel_ = nullptr;
   if (flutter_controller_) {
@@ -286,6 +289,9 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (current_website_reader_ && current_website_reader_->HandleMessage(message)) {
+    return 0;
+  }
   if (flutter_controller_) {
     std::optional<LRESULT> result =
         flutter_controller_->HandleTopLevelWindowProc(hwnd, message, wparam,

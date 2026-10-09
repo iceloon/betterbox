@@ -5,6 +5,33 @@ import 'package:flutter/services.dart';
 
 const currentWebsiteChannel = MethodChannel('betterbox/current_website');
 
+/// Chromium on Windows may hide the scheme in its accessible address value.
+String normalizeBrowserWebsiteURL(String value) {
+  final trimmed = value.trim();
+  if (RegExp(r'^https?://', caseSensitive: false).hasMatch(trimmed)) {
+    currentWebsiteRule(trimmed);
+    return trimmed;
+  }
+  if (trimmed.isEmpty || RegExp(r'\s').hasMatch(trimmed)) {
+    throw const FormatException('Not a website address');
+  }
+  final candidate = 'https://$trimmed';
+  final uri = Uri.tryParse(candidate);
+  if (uri == null || uri.userInfo.isNotEmpty) {
+    throw const FormatException('Not a website address');
+  }
+  // Search queries and internal browser schemes must not become domain rules.
+  final host = uri.host;
+  if (!host.contains('.') &&
+      host != 'localhost' &&
+      InternetAddress.tryParse(host.replaceAll(RegExp(r'[\[\]]'), '')) ==
+          null) {
+    throw const FormatException('Not a website address');
+  }
+  currentWebsiteRule(candidate);
+  return candidate;
+}
+
 /// Matches only the current hostname, not a guessed registrable parent domain.
 String currentWebsiteRule(String url) {
   final uri = Uri.tryParse(url.trim());

@@ -13,6 +13,7 @@ import 'package:bett_box/plugins/service.dart' as vpn_service;
 import 'package:bett_box/providers/providers.dart';
 import 'package:bett_box/state.dart';
 import 'package:bett_box/widgets/dialog.dart';
+import 'package:bett_box/widgets/input.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1838,7 +1839,50 @@ class AppController {
         );
         return;
       }
-      final url = await currentWebsiteChannel.invokeMethod<String>('readURL');
+      String? url;
+      try {
+        final value = await currentWebsiteChannel.invokeMethod<String>(
+          'readURL',
+        );
+        url = system.isWindows
+            ? normalizeBrowserWebsiteURL(value ?? '')
+            : value;
+        currentWebsiteRule(url ?? '');
+      } catch (error) {
+        if (!system.isWindows ||
+            (error is! PlatformException && error is! FormatException)) {
+          rethrow;
+        }
+        await window?.show();
+        url = await globalState.showCommonDialog<String>(
+          child: InputDialog(
+            title: text(
+              '未能读取当前网页，请手动填写网址',
+              'Could not read the page. Enter its URL',
+            ),
+            value: '',
+            labelText: text(
+              '网页地址（Chrome / Edge）',
+              'Website URL (Chrome / Edge)',
+            ),
+            hintText: 'https://example.com',
+            keyboardType: TextInputType.url,
+            autofocus: true,
+            validator: (value) {
+              try {
+                currentWebsiteRule(value ?? '');
+                return null;
+              } on FormatException {
+                return text(
+                  '请填写有效的 HTTP/HTTPS 网页地址。',
+                  'Enter a valid HTTP/HTTPS website URL.',
+                );
+              }
+            },
+          ),
+        );
+        if (url == null) return;
+      }
       final initialRule = Rule.value(currentWebsiteRule(url ?? ''));
       final rawConfig = await globalState.getProfileConfig(profile.id);
       await window?.show();
@@ -1874,8 +1918,7 @@ class AppController {
           );
       setupClashConfigDebounce();
       globalState.showNotifier(
-        text('网页规则已保存，正在应用配置。',
-            'Website rule saved. Applying the profile.'),
+        text('网页规则已保存，正在应用配置。', 'Website rule saved. Applying the profile.'),
       );
     } on PlatformException catch (error) {
       final message = switch (error.code) {

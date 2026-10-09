@@ -272,6 +272,9 @@ jobs:
         run: |
           flutter pub get
           dart run build_runner build -d
+          if [[ '${{ matrix.arch }}' == 'amd64' && '${{ matrix.compatible }}' != 'true' ]]; then
+            flutter test test/common/current_website_rule_test.dart
+          fi
           dart setup.dart windows --arch ${{ matrix.arch }} --out core-only ${{ matrix.compatible == true && '--compatible' || '' }}
 
       - name: Upload Unsigned Core

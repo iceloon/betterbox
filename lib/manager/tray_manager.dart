@@ -40,6 +40,7 @@ class _TrayContainerState extends ConsumerState<TrayManager> with TrayListener {
   Future<void> _handleTrayIconClick({required bool isRightClick}) async {
     if (system.isWindows) {
       if (isRightClick) {
+        await _captureBrowser();
         // ignore: deprecated_member_use
         await trayManager.popUpContextMenu(bringAppToFront: true);
       } else {
@@ -59,18 +60,22 @@ class _TrayContainerState extends ConsumerState<TrayManager> with TrayListener {
         : vpnProps.trayLeftClickBehavior;
     if (behavior == TrayClickBehavior.showMenu) {
       if (system.isMacOS) {
-        try {
-          // Capture before opening the menu can change the foreground app.
-          await currentWebsiteChannel.invokeMethod<void>('captureBrowser');
-        } on PlatformException {
-          // A browser failure must not prevent opening the regular tray menu.
-        }
+        await _captureBrowser();
       }
       // ignore: deprecated_member_use
       await trayManager.popUpContextMenu(bringAppToFront: true);
       return;
     }
     window?.show();
+  }
+
+  Future<void> _captureBrowser() async {
+    try {
+      // Capture before opening the menu can change the foreground app.
+      await currentWebsiteChannel.invokeMethod<void>('captureBrowser');
+    } on PlatformException {
+      // A browser failure must not prevent opening the regular tray menu.
+    }
   }
 
   @override

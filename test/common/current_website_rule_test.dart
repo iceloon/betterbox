@@ -4,6 +4,47 @@ import 'package:bett_box/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('Windows browser address normalization', () {
+    test('accepts explicit HTTP(S) and scheme-hidden addresses', () {
+      expect(
+        normalizeBrowserWebsiteURL(' https://example.com/a '),
+        'https://example.com/a',
+      );
+      expect(
+        normalizeBrowserWebsiteURL('example.com:8443/a?q=b'),
+        'https://example.com:8443/a?q=b',
+      );
+      expect(
+        normalizeBrowserWebsiteURL('localhost:8080/'),
+        'https://localhost:8080/',
+      );
+      expect(
+        normalizeBrowserWebsiteURL('[2001:db8::1]/'),
+        'https://[2001:db8::1]/',
+      );
+    });
+
+    test('does not infer URLs from searches or browser internal pages', () {
+      for (final value in [
+        '',
+        'search query',
+        'weather',
+        'about:blank',
+        'chrome://settings',
+        'edge://newtab',
+        'file:///tmp/a.html',
+        'javascript:alert(1)',
+        'someone@example.com',
+        'example.com,DIRECT',
+      ]) {
+        expect(
+          () => normalizeBrowserWebsiteURL(value),
+          throwsFormatException,
+          reason: value,
+        );
+      }
+    });
+  });
   group('current website URL', () {
     test(
       'uses the exact hostname, without path, port or parent-domain guesses',

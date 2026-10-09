@@ -146,7 +146,7 @@ class Tray {
       },
     );
     menuItems.add(showMenuItem);
-    if (system.isMacOS) {
+    if (system.isMacOS || system.isWindows) {
       menuItems.add(
         MenuItem(
           label: Intl.getCurrentLocale().startsWith('zh')
