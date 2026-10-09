@@ -30,8 +30,8 @@ on:
 
 env:
   RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
-  IS_STABLE: ${{ !contains(inputs.release_tag || github.ref_name, '-') }}
-  IS_PRERELEASE: ${{ contains(inputs.release_tag || github.ref_name, '-') }}
+  IS_STABLE: ${{ !contains(inputs.release_tag || github.ref_name, '-pre') }}
+  IS_PRERELEASE: ${{ contains(inputs.release_tag || github.ref_name, '-pre') }}
   SHOULD_RELEASE: ${{ (github.event_name == 'push' && (!contains(github.ref, '-') || contains(github.ref_name, 'pre'))) || (github.event_name == 'workflow_dispatch' && inputs.create_release == true && inputs.release_tag != '') }}
   GRADLE_OPTS: -Dorg.gradle.vfs.watch=false
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
