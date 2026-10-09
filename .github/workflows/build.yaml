@@ -420,15 +420,6 @@ jobs:
           wait-for-completion: true
           output-artifact-directory: 'dist'
 
-      - name: Upload Windows Installer (unsigned fallback)
-        if: matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN == ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-installer
-          path: ${{ env.INSTALLER_PATH }}
-          archive: false
-          overwrite: true
-      
       - name: Clean up intermediate unsigned artifacts
         if: always() && matrix.platform == 'windows' && env.SIGNPATH_API_TOKEN != ''
         continue-on-error: true
@@ -480,11 +471,15 @@ jobs:
             fi
           fi
 
+      - name: Name final installation packages Betterbox
+        shell: bash
+        run: python .github/scripts/rename_packages.py dist
+
       - name: Upload Artifacts (macOS & Android)
         if: matrix.platform != 'linux' && matrix.platform != 'windows'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}
           path: ./dist/*
           archive: false
           overwrite: true
@@ -493,7 +488,7 @@ jobs:
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-installer
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-installer
           path: ./dist/*.exe
           archive: false
           overwrite: true
@@ -502,7 +497,7 @@ jobs:
         if: matrix.platform == 'windows' && matrix.compatible == true && matrix.arch == 'amd64'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-portable
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-portable
           path: ./dist/*.zip
           archive: false
           overwrite: true
@@ -511,7 +506,7 @@ jobs:
         if: matrix.platform == 'linux'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-deb
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-deb
           path: ./dist/*.deb
           archive: false
           overwrite: true
@@ -520,7 +515,7 @@ jobs:
         if: matrix.platform == 'linux' && matrix.arch == 'amd64'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-AppImage
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-AppImage
           path: ./dist/*.AppImage
           archive: false
           overwrite: true
@@ -529,7 +524,7 @@ jobs:
         if: matrix.platform == 'linux' && matrix.arch == 'amd64'
         uses: actions/upload-artifact@v7
         with:
-          name: Bettbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-rpm
+          name: Betterbox-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.compatible == true && '-compatible' || '' }}-rpm
           path: ./dist/*.rpm
           archive: false
           overwrite: true
@@ -548,7 +543,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: ./dist/
-          pattern: Bettbox-*
+          pattern: Betterbox-*
           merge-multiple: true
           skip-decompress: true
 

@@ -21,8 +21,8 @@ Betterbox 是 [Bettbox](https://github.com/appshubcc/Bettbox) 的分支版本，
 
 `.github/workflows/sync-upstream.yml` 会定期检查 `appshubcc/Bettbox`：
 
-- 自动合并上游更新到同步分支；
-- 自动创建或更新 Pull Request；
+- 每天检查一次，自动合并上游更新到默认分支；
+- 合并成功后自动构建全部平台，并将安装包发布到 Release；
 - 如果上游改动与“分流”功能冲突，则停止合并并创建 Issue，不覆盖本地代码；
 - 支持在 GitHub Actions 页面手动指定上游分支。
 
@@ -47,6 +47,9 @@ Release 标签会根据 Bettbox 版本、日期和上游提交生成。
 - Windows：x64、ARM64，以及 x64 Compatible 安装包；
 - macOS：Apple Silicon、Intel，以及 Intel Compatible 安装包；
 - Linux：x64、ARM64 DEB，x64 AppImage 和 RPM。
+
+发布的安装包文件名统一以 `Betterbox-` 开头。为减少上游合并冲突，应用内部名称、
+可执行文件名称和应用 ID 暂沿用 Bettbox；这不是与 Bettbox 独立共存的重命名版本。
 
 ### 手动构建
 
