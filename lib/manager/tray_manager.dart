@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:bett_box/common/current_website_rule.dart';
 import 'package:bett_box/common/common.dart';
 import 'package:bett_box/enum/enum.dart';
 import 'package:bett_box/providers/config.dart';
 import 'package:bett_box/providers/state.dart';
 import 'package:bett_box/state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tray_manager/tray_manager.dart';
 
@@ -56,6 +58,14 @@ class _TrayContainerState extends ConsumerState<TrayManager> with TrayListener {
         ? vpnProps.trayRightClickBehavior
         : vpnProps.trayLeftClickBehavior;
     if (behavior == TrayClickBehavior.showMenu) {
+      if (system.isMacOS) {
+        try {
+          // Capture before opening the menu can change the foreground app.
+          await currentWebsiteChannel.invokeMethod<void>('captureBrowser');
+        } on PlatformException {
+          // A browser failure must not prevent opening the regular tray menu.
+        }
+      }
       // ignore: deprecated_member_use
       await trayManager.popUpContextMenu(bringAppToFront: true);
       return;

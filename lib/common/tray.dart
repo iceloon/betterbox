@@ -146,6 +146,18 @@ class Tray {
       },
     );
     menuItems.add(showMenuItem);
+    if (system.isMacOS) {
+      menuItems.add(
+        MenuItem(
+          label: Intl.getCurrentLocale().startsWith('zh')
+              ? '为当前网页设置规则…'
+              : 'Set Rule for Current Website…',
+          onClick: (_) async {
+            await globalState.appController.addCurrentWebsiteRule();
+          },
+        ),
+      );
+    }
     final startMenuItem = MenuItem.checkbox(
       label: trayState.isStart ? appLocalizations.stop : appLocalizations.start,
       onClick: (_) async {

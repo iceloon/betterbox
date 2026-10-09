@@ -43,11 +43,11 @@ class _OverrideProfileViewState extends State<OverrideProfileView> {
           final existingRule = overrideData.rule;
           overrideData = overrideData.copyWith(
             enable: true,
-            rule: OverrideRule(
+            rule: existingRule.copyWith(
               type: OverrideRuleType.override,
               overrideRules: existingRule.type == OverrideRuleType.override
                   ? existingRule.overrideRules
-                  : snippet.rule,
+                  : [...existingRule.addedRules, ...snippet.rule],
             ),
           );
         }
@@ -715,8 +715,16 @@ class RuleContent extends ConsumerWidget {
 class AddRuleDialog extends StatefulWidget {
   final ClashConfigSnippet snippet;
   final Rule? rule;
+  final String? title;
+  final String? description;
 
-  const AddRuleDialog({super.key, required this.snippet, this.rule});
+  const AddRuleDialog({
+    super.key,
+    required this.snippet,
+    this.rule,
+    this.title,
+    this.description,
+  });
 
   @override
   State<AddRuleDialog> createState() => _AddRuleDialogState();
@@ -814,8 +822,13 @@ class _AddRuleDialogState extends State<AddRuleDialog> {
   @override
   Widget build(BuildContext context) {
     return CommonDialog(
-      title: appLocalizations.addRule,
+      title: widget.title ?? appLocalizations.addRule,
       actions: [
+        if (widget.description != null)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(appLocalizations.cancel),
+          ),
         TextButton(
           onPressed: _handleSubmit,
           child: Text(appLocalizations.confirm),
@@ -837,6 +850,10 @@ class _AddRuleDialogState extends State<AddRuleDialog> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (widget.description != null) ...[
+                    SelectableText(widget.description!),
+                    const SizedBox(height: 24),
+                  ],
                   FilledButton.tonal(
                     onPressed: () async {
                       _ruleAction =

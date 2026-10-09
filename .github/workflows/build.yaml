@@ -225,6 +225,9 @@ jobs:
         run: |
           flutter pub get
           dart run build_runner build -d
+          if [[ '${{ matrix.platform }}' == 'macos' && '${{ matrix.arch }}' == 'arm64' ]]; then
+            flutter test test/common/current_website_rule_test.dart
+          fi
           dart setup.dart ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} ${{ matrix.compatible == true && '--compatible' || '' }}
 
       - name: Install SignPath (Windows)

@@ -27,6 +27,7 @@ import 'package:yaml/yaml.dart';
 
 import 'common/archive.dart' show restoreBackupFiles;
 import 'common/common.dart';
+import 'common/current_website_rule.dart';
 import 'models/models.dart';
 import 'views/profiles/override_profile.dart';
 
@@ -1797,6 +1798,118 @@ class AppController {
       );
       return model;
     });
+  }
+
+  bool _addingWebsiteRule = false;
+
+  Future<void> addCurrentWebsiteRule() async {
+    if (_addingWebsiteRule) return;
+    _addingWebsiteRule = true;
+    final isChinese = Localizations.localeOf(context).languageCode == 'zh';
+    String text(String zh, String en) => isChinese ? zh : en;
+    Future<void> explain(String message) async {
+      await window?.show();
+      await globalState.showMessage(
+        message: TextSpan(text: message),
+        cancelable: false,
+      );
+    }
+
+    try {
+      final profile = _ref.read(currentProfileProvider);
+      if (profile == null) {
+        await explain(
+          text(
+            '请先选择一个配置，再为网页添加规则。',
+            'Select a profile before adding a website rule.',
+          ),
+        );
+        return;
+      }
+      bool scriptActive(Profile target) =>
+          globalState.config.scriptProps.currentScript != null &&
+          target.useScriptOverride;
+      if (scriptActive(profile)) {
+        await explain(
+          text(
+            '当前配置启用了脚本覆盖，分流规则覆盖不会生效。请先关闭此配置的脚本覆盖，再添加网页规则。',
+            'Script override is active and bypasses rule overrides. Disable it for this profile before adding a website rule.',
+          ),
+        );
+        return;
+      }
+      final url = await currentWebsiteChannel.invokeMethod<String>('readURL');
+      final initialRule = Rule.value(currentWebsiteRule(url ?? ''));
+      final rawConfig = await globalState.getProfileConfig(profile.id);
+      await window?.show();
+      final rule = await globalState.showCommonDialog<Rule>(
+        child: AddRuleDialog(
+          snippet: ClashConfigSnippet.fromJson(rawConfig),
+          rule: initialRule,
+          title: text('为当前网页设置规则', 'Set Rule for Current Website'),
+          description: text(
+            '网页：$url\n保存到配置「${profile.label ?? profile.id}」的永久规则，优先于已有规则。将启用此配置的规则覆盖（含已有覆盖规则）；仅在规则模式下生效。',
+            'Page: $url\nSave a permanent rule to “${profile.label ?? profile.id}”, before existing rules. Enables rule overrides (including existing overrides); applies in Rule mode only.',
+          ),
+        ),
+      );
+      if (rule == null) return;
+      final latest = _ref.read(currentProfileProvider);
+      if (latest == null || latest.id != profile.id || scriptActive(latest)) {
+        await explain(
+          text(
+            '配置或脚本覆盖状态已改变，未保存规则。请重新打开菜单操作。',
+            'The profile or script override changed. No rule was saved; reopen the menu to try again.',
+          ),
+        );
+        return;
+      }
+      _ref
+          .read(profilesProvider.notifier)
+          .updateProfile(
+            profile.id,
+            (state) => state.copyWith(
+              overrideData: prependWebsiteRule(state.overrideData, rule),
+            ),
+          );
+      setupClashConfigDebounce();
+      globalState.showNotifier(
+        text('网页规则已保存，正在应用配置。',
+            'Website rule saved. Applying the profile.'),
+      );
+    } on PlatformException catch (error) {
+      final message = switch (error.code) {
+        'automation_denied' => text(
+          '无法读取网页：请在 macOS「系统设置 → 隐私与安全性 → 自动化」中允许 Bettbox 控制当前浏览器，然后重试。',
+          'Allow Bettbox to control this browser in macOS System Settings > Privacy & Security > Automation, then try again.',
+        ),
+        'unsupported_browser' => text(
+          '请先将 Safari、Chrome、Edge、Brave、Arc 或 Chromium 的网页窗口置于前台，再点击菜单栏图标。',
+          'Bring a Safari, Chrome, Edge, Brave, Arc or Chromium website window to the front, then click the menu bar icon.',
+        ),
+        _ => text(
+          '无法读取当前网页。请确认浏览器有打开的网页，然后重试。',
+          'Could not read the current page. Open a website in your browser and try again.',
+        ),
+      };
+      await explain(message);
+    } on FormatException {
+      await explain(
+        text(
+          '当前标签页不是有效的 HTTP/HTTPS 网页，无法自动创建规则。',
+          'The current tab is not a valid HTTP/HTTPS website. No rule was created.',
+        ),
+      );
+    } catch (_) {
+      await explain(
+        text(
+          '无法读取网页或配置，请稍后重试。',
+          'Could not read the website or profile. Please try again.',
+        ),
+      );
+    } finally {
+      _addingWebsiteRule = false;
+    }
   }
 
   Future<bool> exportLogs() async {
